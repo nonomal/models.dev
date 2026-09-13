@@ -17,4 +17,4 @@ output = 4.84
 cache_read = 0.286
 
 [limit]
-output = 24_000
+output = 80_000

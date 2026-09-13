@@ -78,6 +78,9 @@ const BASE_MODEL_ALIASES: Record<string, string> = {
   "claude-opus-4-6-fast": "anthropic/claude-opus-4-6",
   "claude-opus-4-7-fast": "anthropic/claude-opus-4-7",
   "claude-opus-4-8-fast": "anthropic/claude-opus-4-8",
+  "openai-gpt-56-luna-pro": "openai/gpt-5.6-luna",
+  "openai-gpt-56-sol-pro": "openai/gpt-5.6-sol",
+  "openai-gpt-56-terra-pro": "openai/gpt-5.6-terra",
 };
 
 export const venice = {
@@ -203,14 +206,26 @@ export function resolveVeniceBaseModel(id: string, name: string) {
   const alias = BASE_MODEL_ALIASES[id];
   if (alias !== undefined) return alias;
   const entries = getMetadataEntries();
-  const normalizedID = normalize(id);
-  const normalizedName = normalize(name);
-  const ranked = [
-    entries.filter((entry) => entry.normalizedFull === normalizedID),
-    entries.filter((entry) => entry.normalizedFilename === normalizedID),
-    entries.filter((entry) => entry.normalizedFilename === normalizedName),
-  ];
-  return ranked.find((matches) => matches.length === 1)?.[0]?.id;
+  for (const candidate of veniceBaseModelCandidates(id, name)) {
+    const normalized = normalize(candidate);
+    const ranked = [
+      entries.filter((entry) => entry.normalizedFull === normalized),
+      entries.filter((entry) => entry.normalizedFilename === normalized),
+    ];
+    const match = ranked.find((matches) => matches.length === 1)?.[0]?.id;
+    if (match !== undefined) return match;
+  }
+  return undefined;
+}
+
+function veniceBaseModelCandidates(id: string, name: string) {
+  const candidates = [id, name];
+  for (const value of [id, name]) {
+    if (value.toLowerCase().endsWith("-fast")) candidates.push(value.slice(0, -"-fast".length));
+    const withoutFastLabel = value.replace(/\s*\(?\s*fast\s*\)?\s*$/i, "").trim();
+    if (withoutFastLabel !== "" && withoutFastLabel !== value) candidates.push(withoutFastLabel);
+  }
+  return [...new Set(candidates)];
 }
 
 function getMetadataEntries() {

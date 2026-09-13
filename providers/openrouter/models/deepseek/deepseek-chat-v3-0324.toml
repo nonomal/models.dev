@@ -12,13 +12,12 @@ knowledge = "2024-07-31"
 open_weights = true
 
 [cost]
-input = 0.24
-output = 0.9
-cache_read = 0.135
+input = 0.25
+output = 1
 
 [limit]
 context = 163_840
-output = 16_384
+output = 147_456
 
 [modalities]
 input = ["text"]
